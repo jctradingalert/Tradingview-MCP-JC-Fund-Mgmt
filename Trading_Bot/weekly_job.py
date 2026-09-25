@@ -61,7 +61,7 @@ def run() -> None:
 
 def _email_summary(top_sectors, newly_confirmed, watchlist, errors) -> None:
     rows = "".join(
-        f"<tr><td>{s['sector']}</td><td>{s['etf']}</td><td>{s['weekly_return_pct']}%</td>"
+        f"<tr><td>{s['sector']}</td><td>{s['weekly_return_pct']}%</td>"
         f"<td>{s['relative_strength_pct']}%</td></tr>"
         for s in top_sectors
     )
@@ -80,7 +80,7 @@ def _email_summary(top_sectors, newly_confirmed, watchlist, errors) -> None:
     html = f"""
     <h2>Weekly Sector &amp; Darvas Breakout Scan — {datetime.date.today().isoformat()}</h2>
     <h3>Top performing sectors (weekly relative strength vs SPY)</h3>
-    <table border="1" cellpadding="4"><tr><th>Sector</th><th>ETF</th><th>Weekly Return</th><th>Rel. Strength</th></tr>
+    <table border="1" cellpadding="4"><tr><th>Sector</th><th>Weekly Return</th><th>Rel. Strength</th></tr>
     {rows}</table>
     <h3>Newly confirmed weekly breakouts</h3>
     <table border="1" cellpadding="4"><tr><th>Symbol</th><th>Sector</th><th>Close</th><th>Top</th>

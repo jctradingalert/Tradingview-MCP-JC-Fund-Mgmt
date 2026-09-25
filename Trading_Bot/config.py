@@ -17,19 +17,23 @@ SP500_CACHE_PATH = os.path.join(os.path.dirname(__file__), "data", "sp500_consti
 SP500_CACHE_MAX_AGE_DAYS = 30
 SP500_SOURCE_URL = "https://raw.githubusercontent.com/datasets/s-and-p-500-companies/main/data/constituents.csv"
 
-# GICS sector name -> SPDR sector ETF ticker
-SECTOR_ETFS = {
-    "Information Technology": "XLK",
-    "Health Care": "XLV",
-    "Financials": "XLF",
-    "Consumer Discretionary": "XLY",
-    "Consumer Staples": "XLP",
-    "Energy": "XLE",
-    "Industrials": "XLI",
-    "Materials": "XLB",
-    "Real Estate": "XLRE",
-    "Utilities": "XLU",
-    "Communication Services": "XLC",
+# GICS sector name (as used by the S&P 500 constituent CSV) -> FMP's own sector
+# taxonomy (as used by the historical-sector-performance endpoint). Sector ETF
+# tickers (XLK, XLF, ...) are NOT used here: FMP's plan in use returns 402 for
+# historical OHLC on sector ETFs, so ETFs are not scanned as Darvas candidates
+# and sector strength is ranked from FMP's own sector-performance data instead.
+SECTORS = {
+    "Information Technology": "Technology",
+    "Health Care": "Healthcare",
+    "Financials": "Financial Services",
+    "Consumer Discretionary": "Consumer Cyclical",
+    "Consumer Staples": "Consumer Defensive",
+    "Energy": "Energy",
+    "Industrials": "Industrials",
+    "Materials": "Basic Materials",
+    "Real Estate": "Real Estate",
+    "Utilities": "Utilities",
+    "Communication Services": "Communication Services",
 }
 BENCHMARK = "SPY"
 TOP_N_SECTORS = int(os.environ.get("TOP_N_SECTORS", "3"))

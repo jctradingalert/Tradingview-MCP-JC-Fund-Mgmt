@@ -27,7 +27,7 @@ def _save_cache(constituents: list[dict]) -> None:
 
 
 def get_sp500_constituents() -> list[dict]:
-    """[{symbol, sector}] — sector is the GICS sector name used as a key into config.SECTOR_ETFS."""
+    """[{symbol, sector}] — sector is the GICS sector name used as a key into config.SECTORS."""
     cached = _load_cache()
     if cached is not None:
         return cached
@@ -42,15 +42,14 @@ def get_sp500_constituents() -> list[dict]:
 
 
 def get_universe(top_sectors: list[str]) -> list[dict]:
-    """Stocks in the given GICS sectors, plus every sector ETF (so ETFs are always scanned too)."""
+    """S&P 500 stocks in the given GICS sectors. Sector ETFs are not included as scan
+    candidates: this FMP plan returns 402 on historical OHLC for sector ETFs, so they're
+    used only for ranking sectors (via sector_scan.py), not for direct Darvas scanning."""
     constituents = get_sp500_constituents()
-    symbols = [c for c in constituents if c["sector"] in top_sectors]
-    for sector_name, etf in config.SECTOR_ETFS.items():
-        symbols.append({"symbol": etf, "sector": sector_name})
     seen = set()
     deduped = []
-    for s in symbols:
-        if s["symbol"] not in seen:
-            seen.add(s["symbol"])
-            deduped.append(s)
+    for c in constituents:
+        if c["sector"] in top_sectors and c["symbol"] not in seen:
+            seen.add(c["symbol"])
+            deduped.append(c)
     return deduped
