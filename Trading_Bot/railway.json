@@ -1,0 +1,8 @@
+{
+  "$schema": "https://railway.com/railway.schema.json",
+  "deploy": {
+    "startCommand": "python weekly_job.py",
+    "cronSchedule": "0 22 * * 0",
+    "restartPolicyType": "NEVER"
+  }
+}
