@@ -1,0 +1,5 @@
+.env
+data/state.db
+data/sp500_constituents.json
+__pycache__/
+*.pyc
