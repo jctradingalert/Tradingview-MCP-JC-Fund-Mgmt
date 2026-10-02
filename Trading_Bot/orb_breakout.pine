@@ -1,0 +1,71 @@
+//@version=6
+indicator("ORB Breakout + Volume + VWAP", shorttitle="ORB Brk", overlay=true)
+
+// ─────────────────────────────────────────────
+// Inputs
+// ─────────────────────────────────────────────
+volMult   = input.float(1.5, "Volume multiple (x OR avg volume)", minval=0.1, step=0.1)
+orSession = input.session("0930-1000", "Opening range (ET)")
+endTime   = input.session("1000-1130", "Signal window (ET)", tooltip="Breakouts count only after the range closes and before 11:30 ET.")
+tz        = "America/New_York"
+
+// ─────────────────────────────────────────────
+// Session detection (all times in New York time)
+// ─────────────────────────────────────────────
+inOR     = not na(time(timeframe.period, orSession, tz))
+inWindow = not na(time(timeframe.period, endTime, tz))
+newDay   = dayofmonth(time, tz) != dayofmonth(time[1], tz)
+
+// ─────────────────────────────────────────────
+// Opening range high and average volume
+// ─────────────────────────────────────────────
+var float orHigh   = na
+var float orVolSum = 0.0
+var int   orBars   = 0
+
+if newDay
+    orHigh   := na
+    orVolSum := 0.0
+    orBars   := 0
+
+if inOR
+    orHigh   := na(orHigh) ? high : math.max(orHigh, high)
+    orVolSum += volume
+    orBars   += 1
+
+orAvgVol = orBars > 0 ? orVolSum / orBars : na
+orDone   = not inOR and not na(orHigh)   // range is complete once we leave the OR session
+
+// ─────────────────────────────────────────────
+// Conditions
+// ─────────────────────────────────────────────
+vwapVal  = ta.vwap(hlc3)                             // resets each session
+
+cBreak   = close > orHigh                            // 1. close above OR high
+cVolume  = volume >= volMult * orAvgVol              // 2. volume >= 1.5x OR avg volume
+cVwap    = close > vwapVal                           // 3. above VWAP
+cTime    = inWindow                                  // 4. before 11:30 ET (and after OR ends)
+
+signal   = orDone and cTime and cBreak and cVolume and cVwap
+
+// ─────────────────────────────────────────────
+// Visuals
+// ─────────────────────────────────────────────
+// Opening range high line (drawn once the range is complete, breaks between days)
+plot(orDone ? orHigh : na, "OR High", color=color.orange, linewidth=2, style=plot.style_linebr)
+plot(vwapVal, "VWAP", color=color.new(color.blue, 30))
+
+plotshape(signal, "Breakout", style=shape.triangleup, location=location.abovebar,
+          color=color.green, size=size.small)
+
+bgcolor(signal ? color.new(color.green, 85) : na, title="All conditions met")
+
+// ─────────────────────────────────────────────
+// Alert (fires once per bar close)
+// ─────────────────────────────────────────────
+alertcondition(signal, "ORB Breakout",
+     message="ORB Breakout: {{ticker}} | Price: {{close}} | Time: {{timenow}}")
+
+// Chart timeframe must be <= 30 min for the opening range to be built from intraday bars
+if barstate.islastconfirmedhistory and timeframe.in_seconds() > 1800
+    runtime.error("Use a chart timeframe of 30 minutes or lower.")
